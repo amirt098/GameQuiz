@@ -23,7 +23,8 @@ function AppContent() {
 
     const HomeRedirect = () => {
         if (!user) return <Home />;
-        return <Navigate to={`/${user.role.toLowerCase()}-home`} replace />;
+        const role = user?.role || 'player';  // Default to 'player' if role is undefined
+        return <Navigate to={`/${role.toLowerCase()}-home`} replace />;
     };
 
     return (

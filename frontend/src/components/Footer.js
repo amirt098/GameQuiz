@@ -6,7 +6,7 @@ const Footer = () => {
     const { darkMode } = useTheme();
     return (
         <footer className={`footer ${darkMode ? 'footer-dark' : 'footer-light'}`}>
-            <p>&copy; 2024 Interactive Game Platform. All rights reserved.</p>
+            <p>&copy; Quiz Game Platform. Greetings and honor to all gamers.</p>
         </footer>
     );
 };

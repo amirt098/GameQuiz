@@ -17,6 +17,7 @@ const ManageQuestions = () => {
         difficulty: '',
         status: 'active'
     });
+    const [activeTab, setActiveTab] = useState('my-questions');
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -46,19 +47,38 @@ const ManageQuestions = () => {
         setSearchTerm('');
     };
 
+    const currentFilters = {
+        ...selectedFilters,
+        designer: activeTab === 'my-questions' ? user.name : ''
+    };
+
     return (
         <div className={`manage-questions-page ${darkMode ? 'dark' : 'light'}`}>
             <div className="page-header">
-                <div className="header-content">
-                    <h1>Manage Questions</h1>
-                    <p>Total questions designed by you: {/* Add count here */}</p>
-                </div>
+                <h1>Manage Questions</h1>
                 <Link to="/create-question" className="create-button">
                     Create New Question
                 </Link>
             </div>
 
-            <div className="controls-section">
+            {user.role === 'designer' && (
+                <div className="tabs">
+                    <button
+                        className={`tab-button ${activeTab === 'my-questions' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('my-questions')}
+                    >
+                        My Questions
+                    </button>
+                    <button
+                        className={`tab-button ${activeTab === 'all-questions' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('all-questions')}
+                    >
+                        All Questions
+                    </button>
+                </div>
+            )}
+
+            <div className="filters-section">
                 <div className="search-bar">
                     <input
                         type="text"
@@ -68,24 +88,7 @@ const ManageQuestions = () => {
                     />
                 </div>
 
-                <div className="view-controls">
-                    <button
-                        className={`view-button ${viewMode === 'grid' ? 'active' : ''}`}
-                        onClick={() => setViewMode('grid')}
-                    >
-                        Grid View
-                    </button>
-                    <button
-                        className={`view-button ${viewMode === 'list' ? 'active' : ''}`}
-                        onClick={() => setViewMode('list')}
-                    >
-                        List View
-                    </button>
-                </div>
-            </div>
-
-            <div className="filters-section">
-                <div className="filters-content">
+                <div className="filters">
                     <select
                         value={selectedFilters.category}
                         onChange={(e) => handleFilterChange('category', e.target.value)}
@@ -121,18 +124,29 @@ const ManageQuestions = () => {
                         Clear Filters
                     </button>
                 </div>
+
+                <div className="view-toggle">
+                    <button
+                        className={viewMode === 'grid' ? 'active' : ''}
+                        onClick={() => setViewMode('grid')}
+                    >
+                        Grid View
+                    </button>
+                    <button
+                        className={viewMode === 'list' ? 'active' : ''}
+                        onClick={() => setViewMode('list')}
+                    >
+                        List View
+                    </button>
+                </div>
             </div>
 
-            <div className="questions-container">
-                <QuestionList 
-                    viewMode={viewMode}
-                    searchTerm={searchTerm}
-                    filters={{
-                        ...selectedFilters,
-                        designer: user.name
-                    }}
-                />
-            </div>
+            <QuestionList
+                viewMode={viewMode}
+                searchTerm={searchTerm}
+                filters={currentFilters}
+                showAllQuestions={activeTab === 'all-questions'}
+            />
         </div>
     );
 };

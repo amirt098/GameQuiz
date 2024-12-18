@@ -82,6 +82,7 @@ const mockData = {
                 "John Adams",
                 "Benjamin Franklin"
             ],
+        
             correctAnswer: 1,
             points: 5
         },
@@ -153,6 +154,8 @@ const mockQuestions = [
         question: "What is the difference between 'let' and 'var' in JavaScript?",
         difficulty: "medium",
         category: "Programming",
+        designer: "Designer User",
+        status: "active",
         options: [
             "'let' is block-scoped, 'var' is function-scoped",
             "'let' can be redeclared, 'var' cannot",
@@ -168,6 +171,8 @@ const mockQuestions = [
         question: "Which SQL command is used to retrieve data from a database?",
         difficulty: "easy",
         category: "Programming",
+        designer: "Designer User",
+        status: "active",
         options: [
             "GET",
             "FETCH",
@@ -183,6 +188,8 @@ const mockQuestions = [
         question: "Which hook is used for side effects in React?",
         difficulty: "hard",
         category: "Programming",
+        designer: "Designer User",
+        status: "active",
         options: [
             "useState",
             "useEffect",
@@ -200,28 +207,33 @@ const mockQuestions = [
         question: "Who was the first president of the United States?",
         difficulty: "easy",
         category: "History",
+        designer: "John Doe",
+        status: "active",
         options: [
             "Thomas Jefferson",
             "George Washington",
             "John Adams",
             "Benjamin Franklin"
         ],
+        
         correctAnswer: 1,
         points: 5
     },
     {
         id: 5,
-        title: "Ancient Civilizations",
-        question: "Which ancient civilization built the pyramids of Giza?",
+        title: "Ancient Egypt",
+        question: "Which ancient wonder was located in Egypt?",
         difficulty: "medium",
         category: "History",
+        designer: "Jane Smith",
+        status: "active",
         options: [
-            "Romans",
-            "Greeks",
-            "Egyptians",
-            "Persians"
+            "Hanging Gardens",
+            "Great Pyramid of Giza",
+            "Colossus of Rhodes",
+            "Temple of Artemis"
         ],
-        correctAnswer: 2,
+        correctAnswer: 1,
         points: 10
     },
     {
@@ -230,6 +242,8 @@ const mockQuestions = [
         question: "In which year did World War II end?",
         difficulty: "medium",
         category: "History",
+        designer: "Designer User",
+        status: "active",
         options: [
             "1943",
             "1944",
@@ -247,6 +261,8 @@ const mockQuestions = [
         question: "What is Newton's first law of motion?",
         difficulty: "hard",
         category: "Science",
+        designer: "Designer User",
+        status: "active",
         options: [
             "Force equals mass times acceleration",
             "For every action, there is an equal and opposite reaction",
@@ -262,6 +278,8 @@ const mockQuestions = [
         question: "What is the atomic number of Carbon?",
         difficulty: "medium",
         category: "Science",
+        designer: "Designer User",
+        status: "active",
         options: [
             "4",
             "6",
@@ -277,6 +295,8 @@ const mockQuestions = [
         question: "What is the powerhouse of the cell?",
         difficulty: "easy",
         category: "Science",
+        designer: "Designer User",
+        status: "active",
         options: [
             "Nucleus",
             "Mitochondria",
@@ -294,6 +314,8 @@ const mockQuestions = [
         question: "Solve for x: 2x + 5 = 13",
         difficulty: "easy",
         category: "Mathematics",
+        designer: "Designer User",
+        status: "active",
         options: [
             "x = 3",
             "x = 4",
@@ -309,6 +331,8 @@ const mockQuestions = [
         question: "What is the sum of angles in a triangle?",
         difficulty: "easy",
         category: "Mathematics",
+        designer: "Designer User",
+        status: "active",
         options: [
             "90 degrees",
             "180 degrees",
@@ -324,6 +348,8 @@ const mockQuestions = [
         question: "What is the derivative of x²?",
         difficulty: "medium",
         category: "Mathematics",
+        designer: "Designer User",
+        status: "active",
         options: [
             "x",
             "2x",
@@ -341,6 +367,8 @@ const mockQuestions = [
         question: "What is the capital of Japan?",
         difficulty: "easy",
         category: "Geography",
+        designer: "Designer User",
+        status: "active",
         options: [
             "Seoul",
             "Beijing",
@@ -356,6 +384,8 @@ const mockQuestions = [
         question: "Which is the longest river in the world?",
         difficulty: "medium",
         category: "Geography",
+        designer: "Designer User",
+        status: "active",
         options: [
             "Amazon",
             "Nile",
@@ -371,6 +401,8 @@ const mockQuestions = [
         question: "Which mountain range is the longest in the world?",
         difficulty: "hard",
         category: "Geography",
+        designer: "Designer User",
+        status: "active",
         options: [
             "Rocky Mountains",
             "Himalayas",
@@ -388,6 +420,8 @@ const mockQuestions = [
         question: "Who wrote 'Romeo and Juliet'?",
         difficulty: "easy",
         category: "Literature",
+        designer: "Designer User",
+        status: "active",
         options: [
             "Charles Dickens",
             "William Shakespeare",
@@ -403,6 +437,8 @@ const mockQuestions = [
         question: "Who wrote '1984'?",
         difficulty: "medium",
         category: "Literature",
+        designer: "Designer User",
+        status: "active",
         options: [
             "George Orwell",
             "Aldous Huxley",
@@ -418,6 +454,8 @@ const mockQuestions = [
         question: "What is a haiku's traditional syllable pattern?",
         difficulty: "hard",
         category: "Literature",
+        designer: "Designer User",
+        status: "active",
         options: [
             "5-7-5",
             "7-5-7",
@@ -555,29 +593,31 @@ export const signup = async (userData) => {
 export const getQuestions = async (filters = {}) => {
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    let filteredQuestions = [...mockData.questions];
+    let filteredQuestions = [...mockQuestions];
 
+    // Apply filters
     if (filters.category) {
         filteredQuestions = filteredQuestions.filter(q => 
-            q.category.toLowerCase() === filters.category.toLowerCase()
+            q.category?.toLowerCase() === filters.category.toLowerCase()
         );
     }
 
     if (filters.difficulty) {
         filteredQuestions = filteredQuestions.filter(q => 
-            q.difficulty.toLowerCase() === filters.difficulty.toLowerCase()
+            q.difficulty?.toLowerCase() === filters.difficulty.toLowerCase()
         );
     }
 
-    if (filters.designer) {
+    // Handle designer filter based on showAllQuestions
+    if (filters.designer && !filters.showAllQuestions) {
         filteredQuestions = filteredQuestions.filter(q => 
-            q.designer.toLowerCase().includes(filters.designer.toLowerCase())
+            q.designer?.toLowerCase() === filters.designer.toLowerCase()
         );
     }
 
     if (filters.status) {
         filteredQuestions = filteredQuestions.filter(q => 
-            q.status.toLowerCase() === filters.status.toLowerCase()
+            (q.status || 'active').toLowerCase() === filters.status.toLowerCase()
         );
     }
 
