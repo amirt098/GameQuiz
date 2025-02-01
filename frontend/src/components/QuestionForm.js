@@ -1,30 +1,46 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import { createQuestion, getCategories } from "../services/api";
+import { createQuestion, updateQuestion, getCategories } from "../services/api";
 import "../css/QuestionForm.css";
 
-const QuestionForm = ({ onSubmit }) => {
+const QuestionForm = ({ onSubmit, initialData = null }) => {
     const { user } = useAuth();
     const [formData, setFormData] = useState({
         title: "",
-        question: "",
+        text: "",
         category: "",
         difficulty: "easy",
         options: ["", "", "", ""],
         correctAnswer: "",
-        explanation: ""
+        points: 0,
+        status: "active"
     });
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
     useEffect(() => {
+        if (initialData) {
+            setFormData({
+                ...initialData,
+                options: initialData.options || ["", "", "", ""]
+            });
+        }
+    }, [initialData]);
+
+    useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const categoriesList = await getCategories();
-                setCategories(categoriesList);
+                const response = await getCategories();
+                if (response?.status === 200 && response.data) {
+                    const categoryList = Array.isArray(response.data.categories) 
+                        ? response.data.categories.map(cat => typeof cat === 'object' ? cat.name : cat)
+                        : [];
+                    setCategories(categoryList);
+                }
             } catch (err) {
                 console.error("Error fetching categories:", err);
+                setCategories([]);
             }
         };
         fetchCategories();
@@ -55,149 +71,139 @@ const QuestionForm = ({ onSubmit }) => {
         try {
             const questionData = {
                 ...formData,
-                designer: user.name,
                 status: "active"
             };
 
-            const response = await createQuestion(questionData);
-            if (response.success) {
-                onSubmit?.(response.question);
+            const response = initialData 
+                ? await updateQuestion(initialData.id, questionData)
+                : await createQuestion(questionData);
+
+            if (response?.status === 200 && response.data?.question) {
+                onSubmit?.(response.data.question);
+                if (!initialData) {
+                    setFormData({
+                        title: "",
+                        text: "",
+                        category: "",
+                        difficulty: "easy",
+                        options: ["", "", "", ""],
+                        correctAnswer: "",
+                        points: 0,
+                        status: "active"
+                    });
+                }
             } else {
-                setError("Failed to create question. Please try again.");
+                const errorMessage = response?.error || "Failed to save question";
+                setError(typeof errorMessage === 'object' ? JSON.stringify(errorMessage) : errorMessage);
             }
         } catch (err) {
-            setError("An error occurred. Please try again.");
-            console.error("Error creating question:", err);
+            console.error("Error saving question:", err);
+            const errorMessage = err?.response?.data || err.message || "Failed to save question. Please try again.";
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <form className="question-form" onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="question-form">
             {error && <div className="error-message">{error}</div>}
             
             <div className="form-group">
-                <label htmlFor="title">Question Title</label>
+                <label htmlFor="title">Title</label>
                 <input
                     type="text"
                     id="title"
                     name="title"
                     value={formData.title}
                     onChange={handleChange}
-                    placeholder="Enter a descriptive title"
                     required
                 />
             </div>
 
             <div className="form-group">
-                <label htmlFor="question">Question Text</label>
+                <label htmlFor="text">Question Text</label>
                 <textarea
-                    id="question"
-                    name="question"
-                    value={formData.question}
+                    id="text"
+                    name="text"
+                    value={formData.text}
                     onChange={handleChange}
-                    placeholder="Enter your question"
-                    rows="4"
                     required
                 />
             </div>
 
-            <div className="form-row">
-                <div className="form-group">
-                    <label htmlFor="category">Category</label>
-                    <select
-                        id="category"
-                        name="category"
-                        value={formData.category}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value="">Select Category</option>
-                        {categories.map(category => (
-                            <option key={category} value={category}>
-                                {category}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="difficulty">Difficulty</label>
-                    <select
-                        id="difficulty"
-                        name="difficulty"
-                        value={formData.difficulty}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value="easy">Easy</option>
-                        <option value="medium">Medium</option>
-                        <option value="hard">Hard</option>
-                    </select>
-                </div>
-            </div>
-
             <div className="form-group">
-                <label>Answer Options</label>
-                <div className="options-grid">
-                    {formData.options.map((option, index) => (
-                        <div key={index} className="option-item">
-                            <label htmlFor={`option${index + 1}`}>Option {index + 1}</label>
-                            <input
-                                type="text"
-                                id={`option${index + 1}`}
-                                value={option}
-                                onChange={(e) => handleOptionChange(index, e.target.value)}
-                                placeholder={`Enter option ${index + 1}`}
-                                required
-                            />
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            <div className="form-group">
-                <label htmlFor="correctAnswer">Correct Answer</label>
+                <label htmlFor="category">Category</label>
                 <select
-                    id="correctAnswer"
-                    name="correctAnswer"
-                    value={formData.correctAnswer}
+                    id="category"
+                    name="category"
+                    value={formData.category}
                     onChange={handleChange}
                     required
                 >
-                    <option value="">Select Correct Answer</option>
-                    {formData.options.map((option, index) => (
-                        option && (
-                            <option key={index} value={option}>
-                                Option {index + 1}: {option}
-                            </option>
-                        )
+                    <option value="">Select Category</option>
+                    {categories.map((category, index) => (
+                        <option key={index} value={category}>{category}</option>
                     ))}
                 </select>
             </div>
 
             <div className="form-group">
-                <label htmlFor="explanation">Explanation (Optional)</label>
-                <textarea
-                    id="explanation"
-                    name="explanation"
-                    value={formData.explanation}
+                <label htmlFor="difficulty">Difficulty</label>
+                <select
+                    id="difficulty"
+                    name="difficulty"
+                    value={formData.difficulty}
                     onChange={handleChange}
-                    placeholder="Explain why this is the correct answer"
-                    rows="3"
+                    required
+                >
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+            </div>
+
+            <div className="form-group">
+                <label>Options</label>
+                {formData.options.map((option, index) => (
+                    <div key={index} className="option-group">
+                        <input
+                            type="text"
+                            value={option}
+                            onChange={(e) => handleOptionChange(index, e.target.value)}
+                            placeholder={`Option ${index + 1}`}
+                            required
+                        />
+                        <input
+                            type="radio"
+                            name="correctAnswer"
+                            value={option}
+                            checked={formData.correctAnswer === option}
+                            onChange={(e) => handleChange({
+                                target: { name: 'correctAnswer', value: e.target.value }
+                            })}
+                            required
+                        />
+                    </div>
+                ))}
+            </div>
+
+            <div className="form-group">
+                <label htmlFor="points">Points</label>
+                <input
+                    type="number"
+                    id="points"
+                    name="points"
+                    value={formData.points}
+                    onChange={handleChange}
+                    min="0"
+                    required
                 />
             </div>
 
-            <div className="form-actions">
-                <button 
-                    type="submit" 
-                    className="submit-button" 
-                    disabled={loading}
-                >
-                    {loading ? "Creating..." : "Create Question"}
-                </button>
-            </div>
+            <button type="submit" disabled={loading}>
+                {loading ? "Saving..." : (initialData ? "Update Question" : "Create Question")}
+            </button>
         </form>
     );
 };

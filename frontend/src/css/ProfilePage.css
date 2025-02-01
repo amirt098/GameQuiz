@@ -5,10 +5,11 @@
 }
 
 .profile-content {
-    background: white;
+    background: var(--card-bg);
     border-radius: 10px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     padding: 20px;
+    color: var(--text-color);
 }
 
 .profile-header {
@@ -16,15 +17,16 @@
     align-items: center;
     margin-bottom: 30px;
     padding: 20px;
-    background: #f8f9fa;
+    background: var(--body-bg);
     border-radius: 10px;
+    color: var(--text-color);
 }
 
 .profile-avatar {
     width: 100px;
     height: 100px;
     border-radius: 50%;
-    background: #e9ecef;
+    background: var(--card-bg);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -33,7 +35,7 @@
 
 .avatar-placeholder {
     font-size: 2.5em;
-    color: #6c757d;
+    color: var(--text-color);
 }
 
 .profile-info {
@@ -42,17 +44,17 @@
 
 .profile-info h2 {
     margin: 0;
-    color: #343a40;
+    color: var(--text-color);
 }
 
 .role {
-    color: #6c757d;
+    color: var(--secondary-color);
     text-transform: capitalize;
     margin: 5px 0;
 }
 
 .join-date {
-    color: #adb5bd;
+    color: var(--text-color);
     font-size: 0.9em;
     margin: 5px 0;
 }
@@ -65,21 +67,23 @@
 }
 
 .stat-card {
-    background: #f8f9fa;
+    background: var(--card-bg);
     padding: 20px;
     border-radius: 8px;
     text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    color: var(--text-color);
 }
 
 .stat-card h3 {
     margin: 0 0 10px 0;
-    color: #495057;
+    color: var(--primary-color);
     font-size: 1em;
 }
 
 .stat-card p {
     margin: 0;
-    color: #212529;
+    color: var(--text-color);
     font-size: 1.5em;
     font-weight: bold;
 }
@@ -89,10 +93,10 @@
 }
 
 .profile-section h3 {
-    color: #343a40;
+    color: var(--text-color);
     margin-bottom: 15px;
     padding-bottom: 10px;
-    border-bottom: 2px solid #e9ecef;
+    border-bottom: 2px solid var(--border-color);
 }
 
 .categories-list {
@@ -102,11 +106,11 @@
 }
 
 .category-tag {
-    background: #e9ecef;
+    background: var(--card-bg);
     padding: 5px 15px;
     border-radius: 20px;
     font-size: 0.9em;
-    color: #495057;
+    color: var(--text-color);
 }
 
 .achievements-list {
@@ -116,25 +120,26 @@
 }
 
 .achievement-card {
-    background: #f8f9fa;
+    background: var(--card-bg);
     padding: 15px;
     border-radius: 8px;
-    border-left: 4px solid #198754;
+    border-left: 4px solid var(--primary-color);
+    color: var(--text-color);
 }
 
 .achievement-card h4 {
     margin: 0 0 10px 0;
-    color: #212529;
+    color: var(--text-color);
 }
 
 .achievement-card p {
     margin: 0 0 10px 0;
-    color: #6c757d;
+    color: var(--text-color);
     font-size: 0.9em;
 }
 
 .achievement-date {
-    color: #adb5bd;
+    color: var(--text-color);
     font-size: 0.8em;
 }
 
@@ -145,21 +150,22 @@
 }
 
 .activity-item {
-    background: #f8f9fa;
+    background: var(--card-bg);
     padding: 15px;
     border-radius: 8px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    color: var(--text-color);
 }
 
 .activity-item p {
     margin: 0;
-    color: #495057;
+    color: var(--text-color);
 }
 
 .activity-date {
-    color: #adb5bd;
+    color: var(--text-color);
     font-size: 0.9em;
 }
 
@@ -170,14 +176,15 @@
 }
 
 .question-card {
-    background: #f8f9fa;
+    background: var(--card-bg);
     padding: 15px;
     border-radius: 8px;
+    color: var(--text-color);
 }
 
 .question-card h4 {
     margin: 0 0 10px 0;
-    color: #212529;
+    color: var(--text-color);
 }
 
 .question-stats {
@@ -185,7 +192,7 @@
     flex-wrap: wrap;
     gap: 15px;
     font-size: 0.9em;
-    color: #6c757d;
+    color: var(--text-color);
 }
 
 .profile-actions {
@@ -202,42 +209,42 @@
     cursor: pointer;
     font-size: 1em;
     transition: background-color 0.2s;
+    color: white;
 }
 
 .edit-button {
-    background: #0d6efd;
-    color: white;
+    background: var(--primary-color);
 }
 
 .save-button {
-    background: #198754;
-    color: white;
+    background: var(--success-color);
 }
 
 .cancel-button {
-    background: #dc3545;
-    color: white;
+    background: var(--danger-color);
 }
 
 .edit-button:hover {
-    background: #0b5ed7;
+    background: var(--primary-color-hover);
 }
 
 .save-button:hover {
-    background: #157347;
+    background: var(--success-color-hover);
 }
 
 .cancel-button:hover {
-    background: #bb2d3b;
+    background: var(--danger-color-hover);
 }
 
 .edit-input {
     width: 100%;
     padding: 8px;
-    border: 1px solid #ced4da;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
     font-size: 1em;
     margin-bottom: 10px;
+    background-color: var(--card-bg);
+    color: var(--text-color);
 }
 
 @media (max-width: 768px) {
@@ -262,5 +269,199 @@
         flex-direction: column;
         text-align: center;
         gap: 10px;
+    }
+
+}
+
+.profile-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dark-mode .profile-container {
+    background: #2d3748;
+    color: #ffffff;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid #e2e8f0;
+    margin-bottom: 2rem;
+}
+
+.dark-mode .profile-header {
+    border-bottom-color: #4a5568;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: #4a5568;
+    border: 4px solid #4299e1;
+}
+
+.profile-info {
+    flex: 1;
+}
+
+.profile-name {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.profile-username {
+    font-size: 1.1rem;
+    color: #718096;
+    margin-bottom: 1rem;
+}
+
+.dark-mode .profile-username {
+    color: #a0aec0;
+}
+
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.stat-card {
+    background: #f7fafc;
+    padding: 1.5rem;
+    border-radius: 10px;
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.dark-mode .stat-card {
+    background: #3a4556;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #4299e1;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: #718096;
+    font-size: 0.9rem;
+}
+
+.dark-mode .stat-label {
+    color: #a0aec0;
+}
+
+.profile-form {
+    margin-top: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.dark-mode .form-input {
+    background: #2d3748;
+    border-color: #4a5568;
+    color: #ffffff;
+}
+
+.form-input:focus {
+    border-color: #4299e1;
+    outline: none;
+}
+
+.button-group {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.edit-button, .save-button, .cancel-button {
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.edit-button {
+    background: #4299e1;
+    color: white;
+    border: none;
+}
+
+.edit-button:hover {
+    background: #3182ce;
+}
+
+.save-button {
+    background: #48bb78;
+    color: white;
+    border: none;
+}
+
+.save-button:hover {
+    background: #38a169;
+}
+
+.cancel-button {
+    background: #e53e3e;
+    color: white;
+    border: none;
+}
+
+.cancel-button:hover {
+    background: #c53030;
+}
+
+@media (max-width: 768px) {
+    .profile-container {
+        margin: 1rem;
+        padding: 1rem;
+    }
+
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .button-group {
+        flex-direction: column;
     }
 }

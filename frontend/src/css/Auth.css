@@ -121,17 +121,50 @@
     color: #4a9eff;
 }
 
+.auth-link {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.95rem;
+    color: #666;
+}
+
+.dark .auth-link {
+    color: #aaa;
+}
+
+.auth-link a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.auth-link a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+.dark .auth-link a {
+    color: #4a9eff;
+}
+
+.dark .auth-link a:hover {
+    color: #71b5ff;
+}
+
 .error-message {
     background-color: #fff3f3;
     color: #dc3545;
     padding: 0.75rem;
     border-radius: 6px;
     margin-bottom: 1.5rem;
-    text-align: center;
+    border: 1px solid rgba(220, 53, 69, 0.2);
+    font-size: 0.95rem;
 }
 
 .dark .error-message {
-    background-color: rgba(220, 53, 69, 0.2);
+    background-color: rgba(220, 53, 69, 0.1);
+    border-color: rgba(220, 53, 69, 0.3);
 }
 
 .demo-credentials {

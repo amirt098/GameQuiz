@@ -1,5 +1,5 @@
 .leaderboard {
-    background: #fff;
+    background: var(--card-bg);
     border-radius: 8px;
     padding: 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -8,7 +8,7 @@
 .leaderboard h2 {
     text-align: center;
     margin-bottom: 20px;
-    color: #333;
+    color: var(--text-color);
 }
 
 .leaderboard-list {
@@ -21,7 +21,7 @@
     display: flex;
     align-items: center;
     padding: 10px;
-    background: #f8f9fa;
+    background: var(--card-bg);
     border-radius: 4px;
 }
 
@@ -29,7 +29,7 @@
     font-weight: bold;
     margin-right: 15px;
     width: 30px;
-    color: #666;
+    color: var(--text-color);
 }
 
 .player-name {
@@ -38,10 +38,19 @@
 
 .player-score {
     font-weight: bold;
-    color: #28a745;
+    color: var(--success-color);
 }
 
 /* Simple top 3 styling */
-.leaderboard-item:nth-child(1) { background: #fff9e6; }
-.leaderboard-item:nth-child(2) { background: #f8f9fa; }
-.leaderboard-item:nth-child(3) { background: #fff5f5; }
+.leaderboard-item:nth-child(1) { 
+    background: var(--primary-color);
+    color: var(--light-color);
+}
+.leaderboard-item:nth-child(2) { 
+    background: var(--secondary-color);
+    color: var(--light-color);
+}
+.leaderboard-item:nth-child(3) { 
+    background: var(--info-color);
+    color: var(--light-color);
+}

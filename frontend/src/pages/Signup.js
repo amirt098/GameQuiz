@@ -4,14 +4,17 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { signup } from '../services/api';
 import '../css/Auth.css';
+import '../css/Button.css';
 
 const Signup = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [name, setName] = useState('');
+    const [username, setUsername] = useState('');
     const [role, setRole] = useState('player');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const { login } = useAuth();
     const { darkMode } = useTheme();
     const navigate = useNavigate();
@@ -19,40 +22,49 @@ const Signup = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-
-        if (password !== confirmPassword) {
-            setError('Passwords do not match');
-            return;
-        }
+        setLoading(true);
 
         try {
+            // Validation
+            if (!email.trim()) {
+                setError('Email is required');
+                return;
+            }
+            if (!username.trim()) {
+                setError('Username is required');
+                return;
+            }
+            if (!password) {
+                setError('Password is required');
+                return;
+            }
+            if (password !== confirmPassword) {
+                setError('Passwords do not match');
+                return;
+            }
+
             const userData = {
-                email,
+                email: email.trim(),
                 password,
-                name: name || email.split('@')[0], // Use name if provided, otherwise use email username
+                username: username.trim(),
+                name: name.trim(),
                 role
             };
 
             const response = await signup(userData);
+            
             if (response.status === 200 && response.data?.user) {
                 const { user, token } = response.data;
-                // Ensure user object has all required fields
-                if (!user.role) {
-                    setError('Invalid user data received');
-                    return;
-                }
-                // Store token in localStorage
                 localStorage.setItem('token', token);
-                // Call the context login function to update global state
                 login(user);
-                // Navigate based on user role
                 navigate(`/${user.role.toLowerCase()}-home`);
             } else {
-                setError(response.error || 'Failed to create account');
+                setError(response.error || 'Signup failed. Please try again.');
             }
         } catch (err) {
-            setError('Failed to create account. Please try again.');
-            console.error('Signup error:', err);
+            setError(err.message || 'An error occurred during signup');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -63,59 +75,67 @@ const Signup = () => {
                 {error && <div className="error-message">{error}</div>}
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label htmlFor="email">Email</label>
+                        <label>Email:</label>
                         <input
                             type="email"
-                            id="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Enter your email"
                             required
                         />
                     </div>
                     <div className="form-group">
-                        <label htmlFor="name">Name</label>
+                        <label>Username:</label>
                         <input
                             type="text"
-                            id="name"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            placeholder="Choose a username"
+                            required
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Name (Optional):</label>
+                        <input
+                            type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            placeholder="Optional"
+                            placeholder="Enter your name"
                         />
                     </div>
                     <div className="form-group">
-                        <label htmlFor="password">Password</label>
+                        <label>Password:</label>
                         <input
                             type="password"
-                            id="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Enter your password"
                             required
                         />
                     </div>
                     <div className="form-group">
-                        <label htmlFor="confirmPassword">Confirm Password</label>
+                        <label>Confirm Password:</label>
                         <input
                             type="password"
-                            id="confirmPassword"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
+                            placeholder="Confirm your password"
                             required
                         />
                     </div>
                     <div className="form-group">
-                        <label htmlFor="role">Role</label>
-                        <select
-                            id="role"
-                            value={role}
-                            onChange={(e) => setRole(e.target.value)}
-                            required
-                        >
+                        <label>Role:</label>
+                        <select value={role} onChange={(e) => setRole(e.target.value)}>
                             <option value="player">Player</option>
                             <option value="designer">Designer</option>
                         </select>
                     </div>
-                    <button type="submit" className="auth-submit">
-                        Sign Up
+                    <button 
+                        type="submit" 
+                        className={`auth-submit custom-button primary ${loading ? 'loading' : ''}`}
+                        disabled={loading}
+                    >
+                        {loading ? 'Signing up...' : 'Sign Up'}
                     </button>
                 </form>
                 <p className="auth-switch">

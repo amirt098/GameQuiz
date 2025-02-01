@@ -6,7 +6,7 @@ import { login as loginApi } from '../services/api';
 import '../css/Auth.css';
 
 const Login = () => {
-    const [email, setEmail] = useState('');
+    const [emailOrUsername, setEmailOrUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const { login } = useAuth();
@@ -18,26 +18,22 @@ const Login = () => {
         setError('');
 
         try {
-            const response = await loginApi(email, password);
+            const response = await loginApi(emailOrUsername, password);
             if (response.status === 200 && response.data?.user) {
                 const { user, token } = response.data;
-                // Ensure user object has all required fields
                 if (!user.role) {
                     setError('Invalid user data received');
                     return;
                 }
-                // Store token in localStorage
                 localStorage.setItem('token', token);
-                // Call the context login function to update global state
                 login(user);
-                // Navigate based on user role
                 navigate(`/${user.role.toLowerCase()}-home`);
             } else {
-                setError(response.error || 'Invalid email or password');
+                // Convert error object to string if needed
+                setError(typeof response.error === 'string' ? response.error : 'Invalid credentials');
             }
-        } catch (err) {
+        } catch (error) {
             setError('Failed to login. Please try again.');
-            console.error('Login error:', err);
         }
     };
 
@@ -48,12 +44,13 @@ const Login = () => {
                 {error && <div className="error-message">{error}</div>}
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label htmlFor="email">Email</label>
+                        <label htmlFor="emailOrUsername">Email or Username</label>
                         <input
-                            type="email"
-                            id="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            type="text"
+                            id="emailOrUsername"
+                            value={emailOrUsername}
+                            onChange={(e) => setEmailOrUsername(e.target.value)}
+                            placeholder="Enter your email or username"
                             required
                         />
                     </div>
@@ -64,6 +61,7 @@ const Login = () => {
                             id="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Enter your password"
                             required
                         />
                     </div>

@@ -23,8 +23,8 @@ function AppContent() {
 
     const HomeRedirect = () => {
         if (!user) return <Home />;
-        const role = user?.role || 'player';  // Default to 'player' if role is undefined
-        return <Navigate to={`/${role.toLowerCase()}-home`} replace />;
+        const role = user?.role?.toLowerCase() || 'player';
+        return <Navigate to={`/${role}-home`} replace />;
     };
 
     return (
@@ -34,8 +34,12 @@ function AppContent() {
                 <main>
                     <Routes>
                         <Route path="/" element={<HomeRedirect />} />
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/signup" element={<Signup />} />
+                        <Route path="/login" element={
+                            user ? <Navigate to={`/${user?.role?.toLowerCase() || 'player'}-home`} replace /> : <Login />
+                        } />
+                        <Route path="/signup" element={
+                            user ? <Navigate to={`/${user?.role?.toLowerCase() || 'player'}-home`} replace /> : <Signup />
+                        } />
                         <Route path="/designer-home" 
                             element={<PrivateRoute element={<DesignerHome />} requiredRole="designer" />} 
                         />
@@ -53,7 +57,7 @@ function AppContent() {
                         />
                         <Route path="/leaderboard" element={<LeaderboardPage />} />
                         <Route path="/profile" 
-                            element={<PrivateRoute element={<ProfilePage />} requiredRole="player" />} 
+                            element={<PrivateRoute element={<ProfilePage />} />} 
                         />
                         <Route path="/manage-categories" 
                             element={<PrivateRoute element={<ManageCategories />} requiredRole="designer" />} 

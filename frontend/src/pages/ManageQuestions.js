@@ -4,6 +4,8 @@ import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import { getCategories } from "../services/api";
 import QuestionList from "../components/QuestionList";
+import QuestionForm from "../components/QuestionForm";
+import Modal from "../components/Modal";
 import "../css/ManageQuestions.css";
 
 const ManageQuestions = () => {
@@ -18,14 +20,23 @@ const ManageQuestions = () => {
         status: 'active'
     });
     const [activeTab, setActiveTab] = useState('my-questions');
+    const [editingQuestion, setEditingQuestion] = useState(null);
+    const [showEditModal, setShowEditModal] = useState(false);
 
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const fetchedCategories = await getCategories();
-                setCategories(fetchedCategories);
+                const response = await getCategories();
+                if (response?.status === 200 && response.data) {
+                    // Ensure we're getting an array of strings
+                    const categoryList = Array.isArray(response.data.categories) 
+                        ? response.data.categories.map(cat => typeof cat === 'object' ? cat.name : cat)
+                        : [];
+                    setCategories(categoryList);
+                }
             } catch (error) {
                 console.error('Error fetching categories:', error);
+                setCategories([]);
             }
         };
         fetchCategories();
@@ -47,9 +58,20 @@ const ManageQuestions = () => {
         setSearchTerm('');
     };
 
+    const handleQuestionClick = (question) => {
+        setEditingQuestion(question);
+        setShowEditModal(true);
+    };
+
+    const handleQuestionUpdate = (updatedQuestion) => {
+        setShowEditModal(false);
+        setEditingQuestion(null);
+        // You might want to refresh the questions list here
+    };
+
     const currentFilters = {
         ...selectedFilters,
-        designer: activeTab === 'my-questions' ? user.name : ''
+        designer: activeTab === 'my-questions' ? (user?.id || '') : ''
     };
 
     return (
@@ -61,7 +83,7 @@ const ManageQuestions = () => {
                 </Link>
             </div>
 
-            {user.role === 'designer' && (
+            {user?.role === 'designer' && (
                 <div className="tabs">
                     <button
                         className={`tab-button ${activeTab === 'my-questions' ? 'active' : ''}`}
@@ -94,8 +116,8 @@ const ManageQuestions = () => {
                         onChange={(e) => handleFilterChange('category', e.target.value)}
                     >
                         <option value="">All Categories</option>
-                        {categories.map(category => (
-                            <option key={category} value={category}>
+                        {categories.map((category, index) => (
+                            <option key={index} value={category}>
                                 {category}
                             </option>
                         ))}
@@ -115,9 +137,9 @@ const ManageQuestions = () => {
                         value={selectedFilters.status}
                         onChange={(e) => handleFilterChange('status', e.target.value)}
                     >
+                        <option value="">All Status</option>
                         <option value="active">Active</option>
-                        <option value="pending">Pending</option>
-                        <option value="archived">Archived</option>
+                        <option value="inactive">Inactive</option>
                     </select>
 
                     <button onClick={clearFilters} className="clear-filters">
@@ -127,16 +149,16 @@ const ManageQuestions = () => {
 
                 <div className="view-toggle">
                     <button
-                        className={viewMode === 'grid' ? 'active' : ''}
+                        className={`view-button ${viewMode === 'grid' ? 'active' : ''}`}
                         onClick={() => setViewMode('grid')}
                     >
                         Grid View
                     </button>
                     <button
-                        className={viewMode === 'list' ? 'active' : ''}
-                        onClick={() => setViewMode('list')}
+                        className={`view-button ${viewMode === 'table' ? 'active' : ''}`}
+                        onClick={() => setViewMode('table')}
                     >
-                        List View
+                        Table View
                     </button>
                 </div>
             </div>
@@ -145,8 +167,24 @@ const ManageQuestions = () => {
                 viewMode={viewMode}
                 searchTerm={searchTerm}
                 filters={currentFilters}
-                showAllQuestions={activeTab === 'all-questions'}
+                onQuestionClick={handleQuestionClick}
             />
+
+            {showEditModal && (
+                <Modal
+                    isOpen={showEditModal}
+                    onClose={() => {
+                        setShowEditModal(false);
+                        setEditingQuestion(null);
+                    }}
+                    title="Edit Question"
+                >
+                    <QuestionForm
+                        initialData={editingQuestion}
+                        onSubmit={handleQuestionUpdate}
+                    />
+                </Modal>
+            )}
         </div>
     );
 };

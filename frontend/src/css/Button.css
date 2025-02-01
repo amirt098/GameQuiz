@@ -1,0 +1,127 @@
+.custom-button {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.custom-button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+}
+
+.custom-button:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* Primary Button */
+.custom-button.primary {
+    background: linear-gradient(135deg, #4a9eff 0%, #007bff 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(74, 158, 255, 0.2);
+}
+
+.custom-button.primary:hover {
+    box-shadow: 0 6px 20px rgba(74, 158, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+/* Secondary Button */
+.custom-button.secondary {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.2);
+}
+
+.custom-button.secondary:hover {
+    box-shadow: 0 6px 20px rgba(108, 117, 125, 0.3);
+    transform: translateY(-1px);
+}
+
+/* Dark mode styles */
+.dark .custom-button.primary {
+    background: linear-gradient(135deg, #5db2ff 0%, #1a88ff 100%);
+}
+
+.dark .custom-button.secondary {
+    background: linear-gradient(135deg, #7d8790 0%, #5a6268 100%);
+}
+
+/* Disabled state */
+.custom-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.custom-button:disabled::before {
+    display: none;
+}
+
+/* Loading state */
+.custom-button.loading {
+    position: relative;
+    cursor: wait;
+}
+
+.custom-button.loading::after {
+    content: '';
+    width: 20px;
+    height: 20px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: button-loading-spinner 0.8s linear infinite;
+    position: absolute;
+    right: 1rem;
+}
+
+@keyframes button-loading-spinner {
+    from {
+        transform: rotate(0turn);
+    }
+    to {
+        transform: rotate(1turn);
+    }
+}
+
+/* Icon styles */
+.custom-button .icon {
+    font-size: 1.2em;
+    transition: transform 0.3s ease;
+}
+
+.custom-button:hover .icon {
+    transform: scale(1.1);
+}
+
+/* Size variations */
+.custom-button.small {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+.custom-button.large {
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+}

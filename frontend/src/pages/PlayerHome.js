@@ -1,199 +1,364 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-    getRandomQuestion, 
-    getQuestionsByCategory, 
-    submitAnswer, 
+import {
+    getRandomUnansweredQuestion,
+    getQuestionsByCategory,
+    submitAnswer,
     getCategories,
     getUserAnsweredQuestions,
-    saveUserAnswer 
+    saveUserAnswer
 } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import '../css/PlayerHome.css';
 
 const PlayerHome = () => {
-    const [gameState, setGameState] = useState('selection'); // 'selection', 'playing', 'history'
+    const [gameState, setGameState] = useState('selection');
     const [currentQuestion, setCurrentQuestion] = useState(null);
     const [selectedAnswer, setSelectedAnswer] = useState(null);
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
     const [categories, setCategories] = useState([]);
     const [answeredQuestions, setAnsweredQuestions] = useState([]);
-    const mockUserId = "user123"; // This would normally come from authentication
+    const [showHistory, setShowHistory] = useState(false);
+    const { user } = useAuth();
+    const { darkMode } = useTheme();
+
 
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
-                const [availableCategories, userAnswers] = await Promise.all([
-                    getCategories(),
-                    getUserAnsweredQuestions(mockUserId)
-                ]);
-                setCategories(availableCategories);
-                setAnsweredQuestions(userAnswers);
-                setLoading(false);
-            } catch (error) {
-                console.error('Error fetching initial data:', error);
+                setLoading(true);
+                setError('');
+
+                const categoriesResponse = await getCategories();
+                if (categoriesResponse?.status === 200 && categoriesResponse.data) {
+                    const categoryList = Array.isArray(categoriesResponse.data) ?
+                        categoriesResponse.data :
+                        (categoriesResponse.data.categories || []);
+
+                    setCategories(categoryList.map(cat => typeof cat === 'object' ? cat.name : cat));
+                } else {
+                    setCategories([]);
+                    console.warn('No categories available');
+                }
+
+                if (user?.id) {
+                    const answersResponse = await getUserAnsweredQuestions(user.id);
+                    console.log(answersResponse);
+                    if (answersResponse?.status === 200) {
+                        updateAnsweredQuestions(answersResponse);
+                    } else {
+                        setAnsweredQuestions([]);
+                        console.warn('No answered questions available');
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching initial data:', err);
+                setError('Failed to load game data. Please try again.');
+                setCategories([]);
+                setAnsweredQuestions([]);
+            } finally {
                 setLoading(false);
             }
         };
+
         fetchInitialData();
-    }, []);
+    }, [user?.id]);
 
     const startGame = async (mode, category = null) => {
         setLoading(true);
+        setError('');
+        setCurrentQuestion(null);
+        setSelectedAnswer(null);
+        setResult(null);
+
         try {
-            let question;
+            let response;
             if (mode === 'random') {
-                question = await getRandomQuestion();
-            } else {
-                const categoryQuestions = await getQuestionsByCategory(category);
-                question = categoryQuestions[Math.floor(Math.random() * categoryQuestions.length)];
+                response = await getRandomUnansweredQuestion(user.id);
+                if (response?.status === 200) {
+                    if (!response.data) {
+                        throw new Error('You have answered all available questions! Try a different category or wait for new questions.');
+                    }
+                    setCurrentQuestion(response.data);
+                    setGameState('playing');
+                } else {
+                    throw new Error(response?.error || 'No questions available');
+                }
+            } else if (category) {
+                response = await getQuestionsByCategory(category);
+                if (response?.status === 200) {
+                    const questions = Array.isArray(response.data) ? response.data :
+                                   (response.data?.questions || []);
+
+                    const unansweredQuestions = questions.filter(q =>
+                        q && q.options && !answeredQuestions.some(aq => aq.questionId === q.id)
+                    );
+
+                    if (unansweredQuestions.length > 0) {
+                        const randomQuestion = unansweredQuestions[Math.floor(Math.random() * unansweredQuestions.length)];
+                        setCurrentQuestion(randomQuestion);
+                        setGameState('playing');
+                    } else {
+                        throw new Error('You have answered all questions in this category! Try a different category.');
+                    }
+                } else {
+                    throw new Error(response?.error || 'Failed to load questions');
+                }
             }
-            setCurrentQuestion(question);
-            setGameState('playing');
-            setSelectedAnswer(null);
-            setResult(null);
-        } catch (error) {
-            console.error('Error starting game:', error);
+        } catch (err) {
+            console.error('Error starting game:', err);
+            setError(err.message || 'Failed to start game. Please try again.');
+            setGameState('selection'); // Return to selection screen on error
         } finally {
             setLoading(false);
         }
     };
 
-    const handleAnswerSubmit = async (answerIndex) => {
-        if (selectedAnswer !== null || loading) return;
-        
-        setSelectedAnswer(answerIndex);
+    const handleAnswerSelect = async (option) => {
+        if (selectedAnswer || !currentQuestion || !user?.id) return;
+
+        setSelectedAnswer(option);
         try {
-            const response = await submitAnswer(currentQuestion.id, answerIndex);
-            setResult(response);
-            
-            // Save the answer to user's history
-            await saveUserAnswer(
-                mockUserId,
-                currentQuestion.id,
-                answerIndex,
-                response.correct,
-                response.points
-            );
-            
-            // Update answered questions list
-            const updatedAnswers = await getUserAnsweredQuestions(mockUserId);
-            setAnsweredQuestions(updatedAnswers);
-        } catch (error) {
-            console.error('Error submitting answer:', error);
+            setLoading(true);
+            console.log('Submitting answer for question:', currentQuestion.id, 'Answer:', option);
+            const response = await submitAnswer(currentQuestion.id, option);
+            console.log('Submit answer response:', response);
+
+            if (response.status === 200 && response.data) {
+                const isCorrect = response.data.correct;
+                const points = response.data.points || 0;
+
+                console.log('Saving user answer:', {
+                    userId: user.id,
+                    questionId: currentQuestion.id,
+                    answer: option,
+                    isCorrect,
+                    points
+                });
+
+                await saveUserAnswer(user.id, currentQuestion.id, option, isCorrect, points);
+
+                setResult({
+                    correct: isCorrect,
+                    points: points,
+                    correctAnswer: response.data.correctAnswer
+                });
+
+
+            } else {
+                throw new Error(response.error || 'Failed to submit answer');
+            }
+        } catch (err) {
+            console.error('Error in handleAnswerSelect:', err);
+            setError(err.message || 'Failed to submit answer. Please try again.');
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleNextQuestion = () => {
-        setGameState('selection');
-        setCurrentQuestion(null);
-        setSelectedAnswer(null);
-        setResult(null);
+        if (gameState === 'playing' && result) {
+            startGame('random'); // Always get a random question for "Next Question"
+        }
     };
 
-    if (loading) {
-        return <div className="player-home">Loading...</div>;
-    }
+    const updateAnsweredQuestions = (data) => {
+        const formattedAnswers = data.map(answer => ({
+            id: answer.id,
+            question: {
+                id: answer.question.id,
+                title: answer.question.title,
+                text: answer.question.text,
+                category: answer.question.category,
+                points: answer.question.points,
+                correctAnswer: answer.question.correctAnswer,
+            },
+            selectedAnswer: answer.selectedAnswer,
+            correct: answer.correct,
+            answeredAt: answer.answeredAt,
+        }));
 
-    if (gameState === 'history') {
+        console.log('Formatted answers:', formattedAnswers); // Log formatted answers
+        setAnsweredQuestions(formattedAnswers);
+    };
+
+    const renderAnswerHistory = () => {
         return (
-            <div className="player-home">
-                <h2>Your Question History</h2>
+            <div className="history-section">
+                <h3>Your Answer History</h3>
                 <div className="history-list">
-                    {answeredQuestions.map((question, index) => (
-                        <div key={index} className={`history-item ${question.isCorrect ? 'correct' : 'incorrect'}`}>
-                            <h3>{question.title}</h3>
-                            <p className="question-text">{question.question}</p>
-                            <div className="answer-info">
-                                <p>Your answer: {question.options[question.selectedAnswer]}</p>
-                                <p>Correct answer: {question.options[question.correctAnswer]}</p>
-                                <p>Points earned: {question.earnedPoints}</p>
-                                <p>Category: {question.category}</p>
-                                <p>Answered on: {new Date(question.answeredAt).toLocaleString()}</p>
+                    {answeredQuestions.map((answer) => (
+                        <div key={answer.id} className={`history-item ${answer.correct ? 'correct' : 'incorrect'}`}>
+                            <div className="history-meta">
+                            <span className="history-date">
+                                {new Date(answer.answeredAt).toLocaleDateString()}
+                            </span>
+                                <span className="history-category">
+                                Category: {answer.question.category}
+                            </span>
+                                <span className={`history-result ${answer.correct ? 'correct' : 'incorrect'}`}>
+                                {answer.correct ? '✓ Correct' : '✗ Incorrect'}
+                            </span>
+                                <span className="history-points">
+                                Points: {answer.question.points}
+                            </span>
+                            </div>
+                            <div className="question-details">
+                                <h4>{answer.question.title}</h4>
+                                <p className="question-text">{answer.question.text}</p>
+                            </div>
+                            <div className="answer-details">
+                                <div className="history-answer">
+                                    <span className="answer-label">Your Answer:</span>
+                                    <span className="answer-text">{answer.selectedAnswer}</span>
+                                </div>
+                                <div className="history-answer">
+                                    <span className="answer-label">Correct Answer:</span>
+                                    <span className="answer-text">{answer.question.correctAnswer}</span>
+                                </div>
                             </div>
                         </div>
                     ))}
-                </div>
-                <button onClick={() => setGameState('selection')} className="back-button">
-                    Back to Game Selection
-                </button>
-            </div>
-        );
-    }
-
-    if (gameState === 'playing' && currentQuestion) {
-        return (
-            <div className="player-home">
-                <div className="question-card">
-                    <div className="question-info">
-                        <span className="category">{currentQuestion.category}</span>
-                        <span className="difficulty">{currentQuestion.difficulty}</span>
-                    </div>
-                    
-                    <h3>{currentQuestion.question}</h3>
-
-                    <div className="options">
-                        {currentQuestion.options.map((option, index) => (
-                            <button
-                                key={index}
-                                onClick={() => handleAnswerSubmit(index)}
-                                className={`option ${selectedAnswer === index ? result ? result.correct ? 'correct' : 'incorrect' : 'selected' : ''}`}
-                                disabled={selectedAnswer !== null}
-                            >
-                                {option}
-                            </button>
-                        ))}
-                    </div>
-
-                    {result && (
-                        <div className={`result ${result.correct ? 'correct' : 'incorrect'}`}>
-                            <p>{result.correct ? 'Correct! +' + result.points + ' points' : 'Incorrect!'}</p>
-                            {!result.correct && <p>{result.explanation}</p>}
-                            <button onClick={handleNextQuestion} className="next-button">
-                                Try Another Question
-                            </button>
+                    {answeredQuestions.length === 0 && (
+                        <div className="no-history">
+                            No questions answered yet. Start playing to see your history!
                         </div>
                     )}
                 </div>
             </div>
         );
-    }
+    };
+
+    const renderGameContent = () => {
+        if (loading) {
+            return <div className="loading">Loading...</div>;
+        }
+
+        if (error) {
+            return <div className="error">{error}</div>;
+        }
+
+        if (gameState === 'playing' && currentQuestion) {
+            return (
+                <div className={`question-container ${darkMode ? 'dark' : 'light'}`}>
+                    <div className="question-header">
+                        <div className="question-meta">
+                            <span className="category">{currentQuestion.category}</span>
+                            <span className="difficulty">{currentQuestion.difficulty}</span>
+                            <span className="points">Points: {currentQuestion.points}</span>
+                        </div>
+                    </div>
+
+                    <div className="question-content">
+                        <h3>{currentQuestion.title}</h3>
+                        <p className="question-text">{currentQuestion.text}</p>
+
+                        <div className="options-grid">
+                            {currentQuestion.options.map((option, index) => (
+                                <button
+                                    key={index}
+                                    className={`option ${selectedAnswer === option ? 'selected' : ''} 
+                                              ${result && option === result.correctAnswer ? 'correct' : ''}
+                                              ${result && selectedAnswer === option && option !== result.correctAnswer ? 'incorrect' : ''}`}
+                                    onClick={() => handleAnswerSelect(option)}
+                                    disabled={selectedAnswer !== null}
+                                >
+                                    <span className="option-letter">{String.fromCharCode(65 + index)}</span>
+                                    <span className="option-text">{option}</span>
+                                </button>
+                            ))}
+                        </div>
+
+                        {result && (
+                            <div className={`result ${result.correct ? 'correct' : 'incorrect'}`}>
+                                <p className="result-text">
+                                    {result.correct ? ' Correct!' : ' Incorrect!'}
+                                </p>
+                                <p className="points-text">
+                                    {result.correct ? `+${currentQuestion.points} points!` : 'Try again!'}
+                                </p>
+                            </div>
+                        )}
+
+                        <div className="action-buttons">
+                            <button
+                                className="next-button"
+                                onClick={() => setGameState('selection')}
+                            >
+                                Back to Categories
+                            </button>
+                            {result && (
+                                <button
+                                    className="next-button primary"
+                                    onClick={handleNextQuestion}
+                                >
+                                    Next Question
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        return (
+            <>
+                <h2>Welcome to Game Quiz!</h2>
+                <div className="game-controls">
+                    <button
+                        className={`history-toggle-button ${showHistory ? 'active' : ''}`}
+                        onClick={() => setShowHistory(!showHistory)}
+                        aria-label="Toggle History"
+                    >
+                        <span className="button-content">
+                            <i className="fas fa-history"></i>
+                            <span className="button-text">Game History</span>
+                            <span className="history-count">{answeredQuestions.length}</span>
+                        </span>
+                    </button>
+                </div>
+
+                {showHistory ? (
+                    renderAnswerHistory()
+                ) : (
+                    <div className="game-selection">
+                        <div className="random-play-section">
+                            <button
+                                className="mode-button random"
+                                onClick={() => startGame('random')}
+                            >
+                                <span className="icon">🎲</span>
+                                Play Random Question
+                            </button>
+                        </div>
+
+                        <div className="categories-section">
+                            <h3>Select a Category</h3>
+                            <div className="category-grid">
+                                {categories.map((category, index) => (
+                                    <button
+                                        key={index}
+                                        className="category-button"
+                                        onClick={() => startGame('category', category)}
+                                    >
+                                        <span className="category-icon">📚</span>
+                                        {category}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </>
+        );
+    };
 
     return (
-        <div className="player-home">
-            <h1>Welcome, Player</h1>
-            <div className="links">
-                <div 
-                    onClick={() => setGameState('history')} 
-                    className="history-card"
-                >
-                    <h3>View History</h3>
-                    <p>Check your past questions and answers</p>
-                </div>
-            </div>
-            <h2>Choose your game mode:</h2>
-            
-            <div className="game-modes">
-                <button 
-                    className="mode-button random"
-                    onClick={() => startGame('random')}
-                >
-                    <span className="icon">🎲</span>
-                    Random Question
-                </button>
-
-                <div className="category-buttons">
-                    {categories.map((category) => (
-                        <button
-                            key={category}
-                            className="mode-button category"
-                            onClick={() => startGame('category', category)}
-                        >
-                            {category}
-                        </button>
-                    ))}
-                </div>
-            </div>
+        <div className={`player-home ${darkMode ? 'dark' : 'light'}`}>
+            {renderGameContent()}
         </div>
     );
 };
